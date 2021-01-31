@@ -1,12 +1,10 @@
-import traceback
 import uvicorn
-import threading
+import psycopg2
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 
-from src.api.client import Client
-from src.api.models import RawParticipantData
-from src.constants import ServerConfig, ErrorValues
+from src.api.team import TeamClient
+from src.constants import ServerConfig
 from src.logger import logger
 
 
@@ -16,6 +14,9 @@ version = 1
 
 GATEWAY_PATH = f"/api/v{version}"
 
+conn = psycopg2.connect(ServerConfig.DB_URI)
+
+team_client = TeamClient(conn)
 
 @app.middleware("http")
 async def log_requests(request, call_next):
@@ -34,6 +35,10 @@ def root():
 def healthcheck():
     return {"status": "ok"}
 
+
+@app.get(GATEWAY_PATH + '/teams/{team_id}')
+def get_team(team_id):
+    return team_client.get_team(team_id)
 
 if __name__ == "__main__":
     logger.info(f"Starting app on port {ServerConfig.PORT}")

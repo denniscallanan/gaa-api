@@ -2,7 +2,7 @@ FROM python:3.9.1-alpine3.12
 
 RUN apk update && \
  	apk upgrade && \
-    apk add --virtual build-deps gcc python3-dev musl-dev libc-dev libffi-dev libxslt-dev openssl-dev
+    apk add --virtual build-deps gcc python3-dev musl-dev libc-dev libffi-dev libxslt-dev openssl-dev postgresql-libs postgresql-dev
 
 ADD src/requirements.txt /usr/app/src/requirements.txt
 ADD src/dev-requirements.txt /usr/app/src/dev-requirements.txt

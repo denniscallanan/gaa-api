@@ -1,12 +1,10 @@
-APP_NAME            = gaa-api
-IMAGE				= gaa-api
+ENVIRONMENT			?= dev
+APP_NAME            = gaa-api-${ENVIRONMENT}
+IMAGE				= gaa-api-${ENVIRONMENT}
 TAG                 = latest
-
-WORKSPACE_PATH ?= ${PWD}
-
-PYTEST_OPTIONS	?= -p no:cacheprovider --cov src.api
-PORT			?= 5000
-ENVIRONMENT		?= dev
+PORT				?= 5000
+PYTEST_OPTIONS		?= -p no:cacheprovider --cov src.api
+DB_URI 				:= $(shell eval heroku config:get DATABASE_URL -a gaa-api-${ENVIRONMENT})
 
 clean:
 	find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
@@ -14,8 +12,11 @@ clean:
 build: clean
 	docker build -t $(IMAGE) .
 
+dbui:
+	heroku config:get DATABASE_URL -a gaa-api-${ENVIRONMENT} | xargs pgweb --url
+
 run:
-	docker run -e ENVIRONMENT=${ENVIRONMENT} -e RELOAD=${RELOAD} -e TOKEN=${TOKEN} -u :1000 -p $(PORT):5000 $(IMAGE)
+	docker run -e ENVIRONMENT=${ENVIRONMENT} -e DB_URI=${DB_URI} -u :1000 -p $(PORT):5000 $(IMAGE)
 
 lint:
 	docker run -u :1000 --entrypoint '/bin/sh' $(IMAGE) -c "python3 -m pylint src"
@@ -25,7 +26,7 @@ test:
 
 run-dev:
 	python3 -m pip install ${ARTIFACTORY_OPTIONS} -r src/requirements.txt --user
-	python3 run_server.py
+	DB_URI=$(DB_URI) python3 run_server.py
 
 lint-dev:
 	python3 -m pip install ${ARTIFACTORY_OPTIONS} -r src/dev-requirements.txt --user

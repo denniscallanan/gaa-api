@@ -6,6 +6,7 @@ from src.logger import logger
 DB_HOST = "DatabaseHost"
 DB_USER = "DatabaseUser"
 DB_PORT = "DatabasePort"
+DB_NAME = "DatabaseName"
 
 CONFIG = {}
 

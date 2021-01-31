@@ -1,1 +1,6 @@
-{}
+{
+    "DatabaseHost": "ec2-54-216-202-161.eu-west-1.compute.amazonaws.com",
+    "DatabaseName": "d1qn43p27vg22u",
+    "DatabaseUser": "fprxzoeavnzrrr",
+    "DatabasePort": 5432
+}
