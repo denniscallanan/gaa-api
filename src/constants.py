@@ -15,7 +15,7 @@ class Environments:
 
 
 class ServerConfig:
-    PORT = 5000
+    PORT = int(os.environ.get(EnvVars.PORT, '5000'))
     ENVIRONMENT = os.environ.get(EnvVars.ENVIRONMENT, 'dev')
 
 

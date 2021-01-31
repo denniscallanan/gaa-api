@@ -1,4 +1,5 @@
-IMAGE               = gaa-api
+APP_NAME            = gaa-api
+IMAGE				= gaa-api
 TAG                 = latest
 
 WORKSPACE_PATH ?= ${PWD}
@@ -35,3 +36,17 @@ test-dev:
 	python3 -m pip install ${ARTIFACTORY_OPTIONS} -r src/dev-requirements.txt --user
 	python3 -m pip install ${ARTIFACTORY_OPTIONS} -r src/requirements.txt --user
 	python3 -m pytest $(PYTEST_OPTIONS) tests/test_*
+
+publish:
+	heroku container:push web -a ${APP_NAME}
+
+release:
+	heroku container:release web -a ${APP_NAME}
+
+open:
+	heroku open -a ${APP_NAME}
+
+tail-logs:
+	heroku logs --tail -a ${APP_NAME}
+
+full-release: clean build publish release open
