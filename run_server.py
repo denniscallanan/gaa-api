@@ -14,7 +14,7 @@ version = 1
 
 GATEWAY_PATH = f"/api/v{version}"
 
-conn = psycopg2.connect(ServerConfig.DB_URI)
+conn = psycopg2.connect(ServerConfig.DATABASE_URL)
 
 team_client = TeamClient(conn)
 

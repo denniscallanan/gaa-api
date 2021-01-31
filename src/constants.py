@@ -6,7 +6,7 @@ class EnvVars:
     PORT = "PORT"
     TOKEN = "TOKEN"
     ENVIRONMENT = "ENVIRONMENT"
-    DB_URI = "DB_URI"
+    DATABASE_URL = "DATABASE_URL"
 
 
 class Environments:
@@ -16,7 +16,7 @@ class Environments:
 
 
 class ServerConfig:
-    DB_URI = os.environ.get(EnvVars.DB_URI)
+    DATABASE_URL = os.environ.get(EnvVars.DATABASE_URL)
     PORT = int(os.environ.get(EnvVars.PORT, '5000'))
     ENVIRONMENT = os.environ.get(EnvVars.ENVIRONMENT, 'dev')
 
