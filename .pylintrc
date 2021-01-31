@@ -1,0 +1,47 @@
+[MESSAGES CONTROL]
+
+disable=
+    # Not necessarily a problem
+    trailing-whitespace,
+    missing-docstring,
+
+    # Too many false-positives as it stands
+    invalid-name,
+    unused-wildcard-import,
+    wildcard-import,
+
+    # Most static factory methods will trigger this
+    too-many-return-statements,
+
+    # This is the nature of the public API at the moment;
+    # disabling these line by line may generate too much line noise.
+    # These should be revisited and gradually enabled over time as the
+    # public API evolves.
+    too-many-locals,
+    too-many-branches,
+    too-many-instance-attributes,
+    too-many-arguments,
+    too-many-public-methods,
+    too-many-lines,
+
+    # Subjective
+    len-as-condition,
+    no-else-return,
+    useless-object-inheritance,
+    global-statement,
+
+    # Gamma et al. may disagree
+    no-self-use,
+    too-few-public-methods,
+    too-many-ancestors,
+    broad-except,
+    no-name-in-module,
+
+    # Adding to remove unnecessary warning from gnupg library
+    protected-access,
+    fixme
+
+
+[FORMAT]
+max-line-length=120
+max-module-lines=2000
