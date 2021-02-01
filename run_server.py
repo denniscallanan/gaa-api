@@ -1,8 +1,8 @@
 import uvicorn
-import psycopg2
 
 from fastapi import FastAPI
 
+from src.api.base import db
 from src.api.team import TeamClient
 from src.constants import ServerConfig
 from src.logger import logger
@@ -14,15 +14,16 @@ version = 1
 
 GATEWAY_PATH = f"/api/v{version}"
 
-conn = psycopg2.connect(ServerConfig.DATABASE_URL)
-
-team_client = TeamClient(conn)
+team_client = TeamClient()
 
 @app.middleware("http")
 async def log_requests(request, call_next):
+    db.connect(reuse_if_open=True)
     path = request.url.path
     response = await call_next(request)
     logger.info(f"Path: {path}; Status Code: {response.status_code}")
+    if not db.is_closed():
+        db.close()
     return response
 
 

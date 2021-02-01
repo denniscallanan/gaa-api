@@ -4,7 +4,7 @@ IMAGE				= gaa-api-${ENVIRONMENT}
 TAG                 = latest
 PORT				?= 5000
 PYTEST_OPTIONS		?= -p no:cacheprovider --cov src.api
-DATABASE_URL 		:= $(shell eval heroku config:get DATABASE_URL -a gaa-api-${ENVIRONMENT})
+DATABASE_URL 		:= $(shell eval heroku config:get DATABASE_URL -a ${APP_NAME})
 
 clean:
 	find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
@@ -50,4 +50,4 @@ open:
 tail-logs:
 	heroku logs --tail -a ${APP_NAME}
 
-full-release: clean build publish release open
+full-release: clean build publish release tail-logs
