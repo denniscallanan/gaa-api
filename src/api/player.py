@@ -26,5 +26,5 @@ class PlayerClient:
 
     @generic_error_wrapper
     def get_player(self, player_id):
-        player = Player.get(Player.player_id == player_id)
+        player = Player.get_by_id(player_id)
         return model_to_dict(player)

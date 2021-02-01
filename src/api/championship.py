@@ -19,5 +19,5 @@ class ChampionshipClient:
 
     @generic_error_wrapper
     def get_championship(self, championship_id):
-        championship = Championship.get(Championship.championship_id == championship_id)
+        championship = Championship.get_by_id(championship_id)
         return model_to_dict(championship)

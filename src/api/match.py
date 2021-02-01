@@ -38,5 +38,5 @@ class MatchClient:
 
     @generic_error_wrapper
     def get_match(self, match_id):
-        match = Match.get(Match.match_id == match_id)
+        match = Match.get_by_id(match_id)
         return model_to_dict(match)

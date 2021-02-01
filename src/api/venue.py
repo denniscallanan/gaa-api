@@ -20,5 +20,5 @@ class VenueClient:
 
     @generic_error_wrapper
     def get_venue(self, venue_id):
-        venue = Venue.get(Venue.venue_id == venue_id)
+        venue = Venue.get_by_id(venue_id)
         return model_to_dict(venue)

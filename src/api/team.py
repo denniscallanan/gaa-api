@@ -23,5 +23,5 @@ class TeamClient:
 
     @generic_error_wrapper
     def get_team(self, team_id):
-        team = Team.get(Team.team_id == team_id)
+        team = Team.get_by_id(team_id)
         return model_to_dict(team)

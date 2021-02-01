@@ -22,5 +22,5 @@ class RefereeClient:
 
     @generic_error_wrapper
     def get_referee(self, referee_id):
-        referee = Referee.get(Referee.referee_id == referee_id)
+        referee = Referee.get_by_id(referee_id)
         return model_to_dict(referee)
