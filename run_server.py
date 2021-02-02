@@ -1,14 +1,16 @@
 import uvicorn
 
 from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
 
-from src.api.base import db
-from src.api.team import TeamClient
-from src.api.player import PlayerClient
-from src.api.referee import RefereeClient
-from src.api.venue import VenueClient
-from src.api.match import MatchClient
-from src.api.championship import ChampionshipClient
+from src.api.clients.base import db
+from src.api.clients.team import TeamClient, TeamResponseModel
+from src.api.clients.team_manager import TeamManagerClient, TeamManagerResponseModel
+from src.api.clients.player import PlayerClient, PlayerResponseModel
+from src.api.clients.referee import RefereeClient, RefereeResponseModel
+from src.api.clients.venue import VenueClient, VenueResponseModel
+from src.api.clients.match import MatchClient, MatchResponseModel
+from src.api.clients.championship import ChampionshipClient, ChampionshipResponseModel
 
 from src.constants import ServerConfig
 from src.logger import logger
@@ -21,6 +23,7 @@ version = 1
 GATEWAY_PATH = f"/api/v{version}"
 
 team_client = TeamClient()
+team_manager_client = TeamManagerClient()
 player_client = PlayerClient()
 referee_client = RefereeClient()
 venue_client = VenueClient()
@@ -49,34 +52,60 @@ def healthcheck():
     return {"status": "ok"}
 
 
-@app.get(GATEWAY_PATH + '/teams/{team_id}')
+@app.get(GATEWAY_PATH + '/teams/{team_id}', response_model=TeamResponseModel)
 def get_team(team_id):
     return team_client.get_team(team_id)
 
 
-@app.get(GATEWAY_PATH + '/players/{player_id}')
+@app.get(GATEWAY_PATH + '/players/{player_id}', response_model=PlayerResponseModel)
 def get_player(player_id):
     return player_client.get_player(player_id)
 
 
-@app.get(GATEWAY_PATH + '/referees/{referee_id}')
+@app.get(GATEWAY_PATH + '/referees/{referee_id}', response_model=RefereeResponseModel)
 def get_referee(referee_id):
     return referee_client.get_referee(referee_id)
 
 
-@app.get(GATEWAY_PATH + '/venues/{venue_id}')
+@app.get(GATEWAY_PATH + '/venues/{venue_id}', response_model=VenueResponseModel)
 def get_venue(venue_id):
     return venue_client.get_venue(venue_id)
 
 
-@app.get(GATEWAY_PATH + '/matches/{match_id}')
+@app.get(GATEWAY_PATH + '/matches/{match_id}', response_model=MatchResponseModel)
 def get_match(match_id):
     return match_client.get_match(match_id)
 
 
-@app.get(GATEWAY_PATH + '/championships/{championship_id}')
+@app.get(GATEWAY_PATH + '/team-managers/{team_manager_id}', response_model=TeamManagerResponseModel)
+def get_team_manager(team_manager_id):
+    return team_manager_client.get_team_manager(team_manager_id)
+
+
+@app.get(GATEWAY_PATH + '/championships/{championship_id}', response_model=ChampionshipResponseModel)
 def get_championship(championship_id):
     return championship_client.get_championship(championship_id)
+
+
+def custom_openapi():
+    ignore_routes = ["/", "/api/v1/healthcheck"]
+    routes = [route for route in app.routes if route.path not in ignore_routes]
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="GAA API",
+        version="1.0.0",
+        description="GAA RESTful API documentation",
+        routes=routes,
+    )
+    openapi_schema["info"]["x-logo"] = {
+        "url": "https://stcomgalls.gaa.ie/wp-content/uploads/sites/30/2016/11/gaa-logo.png"
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 
 if __name__ == "__main__":

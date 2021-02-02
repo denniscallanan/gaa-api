@@ -3,6 +3,7 @@
 
 DROP TABLE IF EXISTS match;
 DROP TABLE IF EXISTS player;
+DROP TABLE IF EXISTS team_manager;
 DROP TABLE IF EXISTS team;
 DROP TABLE IF EXISTS referee;
 DROP TABLE IF EXISTS venue;
@@ -44,6 +45,15 @@ CREATE TABLE team (
     main_venue_id INTEGER REFERENCES venue(venue_id)
 );
 
+CREATE TABLE team_manager (
+    team_manager_id serial PRIMARY KEY,
+	full_name VARCHAR (100) NOT NULL,
+	dob DATE,
+    position_start DATE,
+	position_end DATE,
+	team_id INTEGER REFERENCES team(team_id)
+);
+
 CREATE TABLE player (
     player_id serial PRIMARY KEY,
 	full_name VARCHAR (100) NOT NULL,
@@ -59,6 +69,8 @@ CREATE TABLE match (
 	match_id serial PRIMARY KEY,
 	home_team_id INTEGER REFERENCES team(team_id) NOT NULL,
     away_team_id INTEGER REFERENCES team(team_id) NOT NULL,
+    home_team_manager_id INTEGER REFERENCES team_manager(team_manager_id),
+    away_team_manager_id INTEGER REFERENCES team_manager(team_manager_id),
     home_team_goals INTEGER NOT NULL,
     home_team_points INTEGER NOT NULL,
     away_team_goals INTEGER NOT NULL,
@@ -86,6 +98,8 @@ INSERT INTO referee (full_name, dob, county) VALUES ('Frank Murphy', '1944-01-05
 INSERT INTO team (team_name, sport, est_year, is_county, main_venue_id) VALUES ('Carlow', 'Hurling', 1930, true, 2);
 INSERT INTO team (team_name, sport, est_year, is_county, main_venue_id) VALUES ('Dublin', 'Hurling', 1898, true, 1);
 INSERT INTO team (team_name, sport, est_year, is_county, main_venue_id) VALUES ('BallyBoden St Endas', 'Hurling', 1966, false, 1);
+INSERT INTO player (full_name, dob, team_id, caps) VALUES ('DJ Carey', '1974-01-05', 1, 100);
+INSERT INTO team_manager (full_name, dob, position_start, team_id) VALUES ('Davy Fitzgerald', '1974-07-05', '2014-07-05', 1);
 INSERT INTO match 
     (home_team_id, away_team_id, home_team_goals, home_team_points, away_team_goals, 
     away_team_points, match_date, championship_id, championship_round, is_replay, 

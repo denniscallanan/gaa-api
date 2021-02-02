@@ -39,7 +39,9 @@ disable=
 
     # Adding to remove unnecessary warning from gnupg library
     protected-access,
-    fixme
+    fixme,
+    unsubscriptable-object,
+    duplicate-code
 
 
 [FORMAT]
