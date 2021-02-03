@@ -1,6 +1,8 @@
+from typing import Optional
+
 import uvicorn
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.openapi.utils import get_openapi
 
 from src.api.clients.base import db
@@ -11,6 +13,8 @@ from src.api.clients.referee import RefereeClient, RefereeResponseModel
 from src.api.clients.venue import VenueClient, VenueResponseModel
 from src.api.clients.match import MatchClient, MatchResponseModel
 from src.api.clients.championship import ChampionshipClient, ChampionshipResponseModel
+from src.api.clients.portal_user import PortalUserClient, PortalUserResponseModel
+from src.api.clients.auth import AuthClient
 
 from src.constants import ServerConfig
 from src.logger import logger
@@ -29,6 +33,8 @@ referee_client = RefereeClient()
 venue_client = VenueClient()
 match_client = MatchClient()
 championship_client = ChampionshipClient()
+user_client = PortalUserClient()
+auth_client = AuthClient()
 
 
 @app.middleware("http")
@@ -45,6 +51,14 @@ async def log_requests(request, call_next):
 @app.get('/')
 def root():
     return {"result": f"Use {GATEWAY_PATH}/healthcheck to check the health of the server"}
+
+
+@app.get('/google-auth-verify')
+def google_auth_verify(id_token: Optional[str] = Header(None)):
+    google_sub_id = auth_client.google_verify_id_token(id_token)
+    if google_sub_id:
+        return user_client.create_or_get_user_by_google_sub(google_sub_id)
+    raise HTTPException(status_code=401, detail="ID Token is invalid")
 
 
 @app.get(GATEWAY_PATH + '/healthcheck')

@@ -8,10 +8,17 @@ DROP TABLE IF EXISTS team;
 DROP TABLE IF EXISTS referee;
 DROP TABLE IF EXISTS venue;
 DROP TABLE IF EXISTS championship;
+DROP TABLE IF EXISTS portal_user;
 
 
 /* TEAM TABLE */
 
+
+CREATE TABLE portal_user (
+    user_identifier serial PRIMARY KEY,
+    google_sub VARCHAR (50),
+	reported_count SMALLINT NOT NULL DEFAULT 0
+);
 
 CREATE TABLE championship (
     championship_id serial PRIMARY KEY,
