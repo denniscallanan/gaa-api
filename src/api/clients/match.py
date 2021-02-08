@@ -2,70 +2,67 @@ from datetime import date
 from typing import Optional
 
 from peewee import *
-from pydantic import BaseModel
 
-from src.api.clients.base import BaseDataModel, BaseClient
-from src.api.exceptions import generic_error_wrapper
+from src.api.clients.base import BaseDataModel, DTO
 from src.api.models.response_models import ResponseModel
 
 
-class Match(BaseDataModel):
-    away_team_goals = IntegerField()
-    away_team_id = IntegerField()
-    away_team_manager_id = IntegerField()
-    home_team_manager_id = IntegerField()
-    away_team_points = IntegerField()
-    championship_id = IntegerField()
+class MatchTable(BaseDataModel):
+    id_tag = CharField(default=BaseDataModel.gen_uid("MATCH"))
+    away_team_goals = IntegerField(default=0)
+    away_team_id = CharField()
+    away_team_manager_id = CharField()
+    home_team_manager_id = CharField()
+    away_team_points = IntegerField(default=0)
+    championship_id = CharField()
     championship_round = CharField(null=True)
     extra_time = BooleanField(null=True)
     full_time = BooleanField(null=True)
     half_time = BooleanField(null=True)
-    home_team_goals = IntegerField()
-    home_team_id = IntegerField()
-    home_team_points = IntegerField()
+    home_team_goals = IntegerField(default=0)
+    home_team_id = CharField()
+    home_team_points = IntegerField(default=0)
     is_replay = BooleanField(constraints=[SQL("DEFAULT false")])
     match_date = DateField(null=True)
     match_time = TimeField(null=True)
-    referee_id = IntegerField()
-    match_id = AutoField()
-    venue_id = IntegerField()
+    referee_id = CharField()
+    venue_id = CharField()
+    version_num = IntegerField(null=False, default=0)
+    created_by = IntegerField(null=False, default=0)
+    recorded_timestamp = DateTimeField(null=False, constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')])
 
     class Meta:
         table_name = 'match'
+        primary_key = CompositeKey('id_tag', 'version_num')
 
 
-class MatchResponse(BaseModel):
-    away_team_goals: int
-    away_team_id: int
-    away_team_manager_id: Optional[int]
-    home_team_manager_id: Optional[int]
-    away_team_points: int
-    championship_id: Optional[int]
+class Match(DTO):
+    away_team_goals: Optional[int]
+    away_team_id: Optional[str]
+    away_team_manager_id: Optional[str]
+    home_team_manager_id: Optional[str]
+    away_team_points: Optional[int]
+    championship_id: Optional[str]
     championship_round: Optional[str]
-    extra_time: bool
-    full_time: bool
-    half_time: bool
-    home_team_goals: int
-    home_team_id: int
-    home_team_points: int
-    is_replay: bool
+    extra_time: Optional[bool]
+    full_time: Optional[bool]
+    half_time: Optional[bool]
+    home_team_goals: Optional[int]
+    home_team_id: Optional[str]
+    home_team_points: Optional[int]
+    is_replay: Optional[bool]
     match_date: Optional[date]
     match_time: Optional[str]
-    referee_id: Optional[int]
-    match_id: int
+    referee_id: Optional[str]
+
+    @classmethod
+    def get_required_fields(cls):
+        return ["home_team_id", "away_team_id", "match_date"]
+
+    @classmethod
+    def get_uneditable_fields(cls):
+        return ["home_team_id", "away_team_id"]
 
 
 class MatchResponseModel(ResponseModel):
-    result: MatchResponse
-
-
-class MatchClient(BaseClient):
-
-    def db_model_to_response(self, db_model) -> MatchResponse:
-        return MatchResponse(**self._get_field_args(db_model))
-
-    @generic_error_wrapper
-    def get_match(self, match_id):
-        match = Match.get_by_id(match_id)
-        response = self.db_model_to_response(match)
-        return self.to_response_model(response)
+    result: Match.get_identified_record()

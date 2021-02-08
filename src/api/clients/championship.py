@@ -1,38 +1,35 @@
+from typing import Optional
 
 from peewee import *
-from pydantic import BaseModel
 
-from src.api.clients.base import BaseClient, BaseDataModel
-from src.api.exceptions import generic_error_wrapper
+from src.api.clients.base import DTO, BaseDataModel
 from src.api.models.response_models import ResponseModel
 
 
-class Championship(BaseDataModel):
-    championship_id = AutoField()
+class ChampionshipTable(BaseDataModel):
+    id_tag = CharField(default=BaseDataModel.gen_uid("VEN"))
     championship_name = CharField()
     descript = CharField(null=True)
+    version_num = IntegerField(null=False, default=0)
+    created_by = IntegerField(null=False, default=0)
+    recorded_timestamp = DateTimeField(null=False, constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')])
 
     class Meta:
         table_name = 'championship'
+        primary_key = CompositeKey('id_tag', 'version_num')
 
 
-class ChampionshipResponse(BaseModel):
-    championship_id: int
-    championship_name: str
-    descript: str
+class Championship(DTO):
+    championship_name: Optional[str]
+    descript: Optional[str]
 
+    @classmethod
+    def get_required_fields(cls):
+        return ["championship_name"]
+
+    @classmethod
+    def get_uneditable_fields(cls):
+        return ["championship_name"]
 
 class ChampionshipResponseModel(ResponseModel):
-    result: ChampionshipResponse
-
-
-class ChampionshipClient(BaseClient):
-
-    def db_model_to_response(self, db_model) -> ChampionshipResponse:
-        return ChampionshipResponse(**self._get_field_args(db_model))
-
-    @generic_error_wrapper
-    def get_championship(self, championship_id):
-        championship = Championship.get_by_id(championship_id)
-        response = self.db_model_to_response(championship)
-        return self.to_response_model(response)
+    result: Championship.get_identified_record()

@@ -5,15 +5,15 @@ import uvicorn
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.openapi.utils import get_openapi
 
-from src.api.clients.base import db
-from src.api.clients.team import TeamClient, TeamResponseModel
-from src.api.clients.team_manager import TeamManagerClient, TeamManagerResponseModel
-from src.api.clients.player import PlayerClient, PlayerResponseModel
-from src.api.clients.referee import RefereeClient, RefereeResponseModel
-from src.api.clients.venue import VenueClient, VenueResponseModel
-from src.api.clients.match import MatchClient, MatchResponseModel
-from src.api.clients.championship import ChampionshipClient, ChampionshipResponseModel
-from src.api.clients.portal_user import PortalUserClient, PortalUserResponseModel
+from src.api.clients.base import db, BaseClient, DTO
+from src.api.clients.team import TeamResponseModel, Team, TeamTable
+from src.api.clients.team_manager import TeamManagerResponseModel, TeamManager, TeamManagerTable
+from src.api.clients.player import PlayerResponseModel, Player, PlayerTable
+from src.api.clients.referee import RefereeResponseModel, Referee, RefereeTable
+from src.api.clients.venue import VenueResponseModel, Venue, VenueTable
+from src.api.clients.match import MatchResponseModel, Match, MatchTable
+from src.api.clients.championship import ChampionshipResponseModel, Championship, ChampionshipTable
+from src.api.clients.portal_user import PortalUserClient, PortalUserResponseModel, PortalUser, PortalUserTable
 from src.api.clients.auth import AuthClient
 
 from src.constants import ServerConfig
@@ -26,16 +26,13 @@ version = 1
 
 GATEWAY_PATH = f"/api/v{version}"
 
-team_client = TeamClient()
-team_manager_client = TeamManagerClient()
-player_client = PlayerClient()
-referee_client = RefereeClient()
-venue_client = VenueClient()
-match_client = MatchClient()
-championship_client = ChampionshipClient()
+client = BaseClient()
 user_client = PortalUserClient()
 auth_client = AuthClient()
 
+
+class ResponseDetails:
+    UNAUTHORIZED = "You are unauthorized to make this request"
 
 @app.middleware("http")
 async def log_requests(request, call_next):
@@ -57,8 +54,8 @@ def root():
 def google_auth_verify(id_token: Optional[str] = Header(None)):
     google_sub_id = auth_client.google_verify_id_token(id_token)
     if google_sub_id:
-        return user_client.create_or_get_user_by_google_sub(google_sub_id)
-    raise HTTPException(status_code=401, detail="ID Token is invalid")
+        return user_client.create_or_get_user_by_google_sub(google_sub_id).to_response_model(PortalUser)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
 
 
 @app.get(GATEWAY_PATH + '/healthcheck')
@@ -68,37 +65,154 @@ def healthcheck():
 
 @app.get(GATEWAY_PATH + '/teams/{team_id}', response_model=TeamResponseModel)
 def get_team(team_id):
-    return team_client.get_team(team_id)
+    return client.get_by_id(team_id, TeamTable).to_response_model(Team)
+
+
+@app.post(GATEWAY_PATH + '/teams', response_model=TeamResponseModel)
+def insert_team(team: Team, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.insert(team, TeamTable, user).to_response_model(Team)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.put(GATEWAY_PATH + '/teams/{team_id}', response_model=TeamResponseModel)
+def update_team(team_id, team: Team.get_editable_model(), id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.update(team_id, team, TeamTable, user).to_response_model(Team)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
 
 
 @app.get(GATEWAY_PATH + '/players/{player_id}', response_model=PlayerResponseModel)
 def get_player(player_id):
-    return player_client.get_player(player_id)
+    return client.get_by_id(player_id, PlayerTable).to_response_model(Player)
+
+
+@app.post(GATEWAY_PATH + '/players', response_model=PlayerResponseModel)
+def insert_player(player: Player, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.insert(player, PlayerTable, user).to_response_model(Player)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.put(GATEWAY_PATH + '/players/{player_id}', response_model=PlayerResponseModel)
+def update_player(player_id, player: Player, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.update(player_id, player, PlayerTable, user).to_response_model(Player)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
 
 
 @app.get(GATEWAY_PATH + '/referees/{referee_id}', response_model=RefereeResponseModel)
 def get_referee(referee_id):
-    return referee_client.get_referee(referee_id)
+    return client.get_by_id(referee_id, RefereeTable).to_response_model(Referee)
+
+
+@app.post(GATEWAY_PATH + '/referees', response_model=RefereeResponseModel)
+def insert_referee(referee: Team, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.insert(referee, RefereeTable, user).to_response_model(Referee)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.put(GATEWAY_PATH + '/referees/{referee_id}', response_model=RefereeResponseModel)
+def update_referee(referee_id, referee: Referee, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.update(referee_id, referee, RefereeTable, user).to_response_model(Referee)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
 
 
 @app.get(GATEWAY_PATH + '/venues/{venue_id}', response_model=VenueResponseModel)
 def get_venue(venue_id):
-    return venue_client.get_venue(venue_id)
+    return client.get_by_id(venue_id, VenueTable).to_response_model(Venue)
+
+
+@app.post(GATEWAY_PATH + '/venues', response_model=VenueResponseModel)
+def insert_venue(venue: Venue, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.insert(venue, VenueTable, user).to_response_model(Venue)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.put(GATEWAY_PATH + '/venues/{venue_id}', response_model=VenueResponseModel)
+def update_venue(venue_id, venue: Venue, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.update(venue_id, venue, VenueTable, user).to_response_model(Venue)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
 
 
 @app.get(GATEWAY_PATH + '/matches/{match_id}', response_model=MatchResponseModel)
 def get_match(match_id):
-    return match_client.get_match(match_id)
+    return client.get_by_id(match_id, MatchTable).to_response_model(Match)
+
+
+@app.post(GATEWAY_PATH + '/matches', response_model=MatchResponseModel)
+def insert_match(match: Match, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.insert(match, MatchTable, user).to_response_model(Match)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.put(GATEWAY_PATH + '/matches/{match_id}', response_model=MatchResponseModel)
+def update_match(match_id, match: Match, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.update(match_id, match, MatchTable, user).to_response_model(Match)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
 
 
 @app.get(GATEWAY_PATH + '/team-managers/{team_manager_id}', response_model=TeamManagerResponseModel)
 def get_team_manager(team_manager_id):
-    return team_manager_client.get_team_manager(team_manager_id)
+    return client.get_by_id(team_manager_id, TeamManagerTable).to_response_model(TeamManager)
+
+
+@app.post(GATEWAY_PATH + '/team-managers', response_model=TeamManagerResponseModel)
+def insert_team_manager(team_manager: TeamManager, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.insert(team_manager, TeamManagerTable, user).to_response_model(TeamManager)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.put(GATEWAY_PATH + '/team-managers/{team_manager_id}', response_model=TeamManagerResponseModel)
+def update_team_manager(team_manager_id, team_manager: TeamManager, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.update(team_manager_id, team_manager, TeamManagerTable, user).to_response_model(TeamManager)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
 
 
 @app.get(GATEWAY_PATH + '/championships/{championship_id}', response_model=ChampionshipResponseModel)
 def get_championship(championship_id):
-    return championship_client.get_championship(championship_id)
+    return client.get_by_id(championship_id, ChampionshipTable).to_response_model(Championship)
+
+
+@app.post(GATEWAY_PATH + '/championships', response_model=ChampionshipResponseModel)
+def insert_championship(championship: Championship, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.insert(championship, ChampionshipTable, user).to_response_model(Championship)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.put(GATEWAY_PATH + '/championships/{championship_id}', response_model=ChampionshipResponseModel)
+def update_championship(championship_id, championship: Championship, id_token: Optional[str] = Header(None)):
+    user = user_client.get_user_by_google_sub(auth_client.google_verify_id_token(id_token))
+    if user:
+        return client.update(championship_id, championship, ChampionshipTable, user).to_response_model(Championship)
+    raise HTTPException(status_code=401, detail=ResponseDetails.UNAUTHORIZED)
+
+
+@app.get(GATEWAY_PATH + '/users/{user_id}', response_model=PortalUserResponseModel)
+def get_user(user_id):
+    return client.get_by_id(user_id, PortalUserTable).to_response_model(PortalUser)
 
 
 def custom_openapi():

@@ -2,45 +2,42 @@ from datetime import date
 from typing import Optional
 
 from peewee import *
-from pydantic import BaseModel
 
-from src.api.clients.base import BaseDataModel, BaseClient
-from src.api.exceptions import generic_error_wrapper
+from src.api.clients.base import BaseDataModel, DTO
 from src.api.models.response_models import ResponseModel
 
 
-class Referee(BaseDataModel):
+class RefereeTable(BaseDataModel):
+    id_tag = CharField(default=BaseDataModel.gen_uid("PLAY"))
     career_end = DateField(null=True)
     career_start = DateField(null=True)
     county = CharField(null=True)
     dob = DateField(null=True)
     full_name = CharField()
-    referee_id = AutoField()
+    version_num = IntegerField(null=False, default=0)
+    created_by = IntegerField(null=False, default=0)
+    recorded_timestamp = DateTimeField(null=False, constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')])
 
     class Meta:
         table_name = 'referee'
+        primary_key = CompositeKey('id_tag', 'version_num')
 
 
-class RefereeResponse(BaseModel):
+class Referee(DTO):
     career_end: Optional[date]
     career_start: Optional[date]
-    county: str
+    county: Optional[str]
     dob: Optional[date]
-    full_name: str
-    referee_id: int
+    full_name: Optional[str]
+
+    @classmethod
+    def get_required_fields(cls):
+        return ["full_name"]
+
+    @classmethod
+    def get_uneditable_fields(cls):
+        return ["full_name"]
 
 
 class RefereeResponseModel(ResponseModel):
-    result: RefereeResponse
-
-
-class RefereeClient(BaseClient):
-
-    def db_model_to_response(self, db_model) -> RefereeResponse:
-        return RefereeResponse(**self._get_field_args(db_model))
-
-    @generic_error_wrapper
-    def get_referee(self, referee_id):
-        referee = Referee.get_by_id(referee_id)
-        response = self.db_model_to_response(referee)
-        return self.to_response_model(response)
+    result: Referee.get_identified_record()
