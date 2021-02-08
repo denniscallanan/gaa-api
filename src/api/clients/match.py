@@ -65,4 +65,4 @@ class Match(DTO):
 
 
 class MatchResponseModel(ResponseModel):
-    result: Match.get_identified_record()
+    result: Optional[Match.get_identified_record()]

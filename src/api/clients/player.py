@@ -44,4 +44,4 @@ class Player(DTO):
 
 
 class PlayerResponseModel(ResponseModel):
-    result: Player.get_identified_record()
+    result: Optional[Player.get_identified_record()]

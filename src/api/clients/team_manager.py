@@ -40,4 +40,4 @@ class TeamManager(DTO):
 
 
 class TeamManagerResponseModel(ResponseModel):
-    result: TeamManager.get_identified_record()
+    result: Optional[TeamManager.get_identified_record()]

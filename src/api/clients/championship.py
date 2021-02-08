@@ -32,4 +32,4 @@ class Championship(DTO):
         return ["championship_name"]
 
 class ChampionshipResponseModel(ResponseModel):
-    result: Championship.get_identified_record()
+    result: Optional[Championship.get_identified_record()]

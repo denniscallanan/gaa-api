@@ -35,4 +35,4 @@ class Venue(DTO):
 
 
 class VenueResponseModel(ResponseModel):
-    result: Venue.get_identified_record()
+    result: Optional[Venue.get_identified_record()]

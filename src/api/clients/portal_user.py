@@ -1,3 +1,5 @@
+from typing import Optional
+
 from peewee import *
 from pydantic import BaseModel
 
@@ -22,7 +24,7 @@ class PortalUser(BaseModel):
 
 
 class PortalUserResponseModel(ResponseModel):
-    result: PortalUser
+    result: Optional[PortalUser]
 
 
 class PortalUserClient:

@@ -40,4 +40,4 @@ class Referee(DTO):
 
 
 class RefereeResponseModel(ResponseModel):
-    result: Referee.get_identified_record()
+    result: Optional[Referee.get_identified_record()]

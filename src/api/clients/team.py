@@ -39,4 +39,4 @@ class Team(DTO):
 
 
 class TeamResponseModel(ResponseModel):
-    result: Team.get_identified_record()
+    result: Optional[Team.get_identified_record()]
