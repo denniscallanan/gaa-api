@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 from peewee import *
 
@@ -35,34 +35,40 @@ class MatchTable(BaseDataModel):
         table_name = 'match'
         primary_key = CompositeKey('id_tag', 'version_num')
 
+    def to_record(self):
+        return self.to_model(MatchRecord)
 
-class Match(DTO):
+
+class EditableMatch(DTO):
     away_team_goals: Optional[int]
-    away_team_id: Optional[str]
+    away_team_points: Optional[int]
+    home_team_goals: Optional[int]
+    home_team_points: Optional[int]
     away_team_manager_id: Optional[str]
     home_team_manager_id: Optional[str]
-    away_team_points: Optional[int]
-    championship_id: Optional[str]
-    championship_round: Optional[str]
     extra_time: Optional[bool]
     full_time: Optional[bool]
-    half_time: Optional[bool]
-    home_team_goals: Optional[int]
-    home_team_id: Optional[str]
-    home_team_points: Optional[int]
-    is_replay: Optional[bool]
-    match_date: Optional[date]
-    match_time: Optional[str]
+    half_time: Optional[bool] 
     referee_id: Optional[str]
+    match_time: Optional[str]
+    match_date: Optional[date]
 
-    @classmethod
-    def get_required_fields(cls):
-        return ["home_team_id", "away_team_id", "match_date"]
 
-    @classmethod
-    def get_uneditable_fields(cls):
-        return ["home_team_id", "away_team_id"]
+class Match(EditableMatch):
+    away_team_id: str
+    championship_id: str
+    championship_round: str
+    home_team_id: str
+    is_replay: bool
+
+
+class MatchRecord(Match):
+    id_tag: str
 
 
 class MatchResponseModel(ResponseModel):
-    result: Optional[Match.get_identified_record()]
+    result: Optional[MatchRecord]
+
+
+class MatchResponseModelList(ResponseModel):
+    result: List[MatchRecord]

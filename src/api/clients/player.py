@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 from peewee import *
 
@@ -24,24 +24,30 @@ class PlayerTable(BaseDataModel):
         table_name = 'player'
         primary_key = CompositeKey('id_tag', 'version_num')
 
+    def to_record(self):
+        return self.to_model(PlayerRecord)
 
-class Player(DTO):
+
+class EditablePlayer(DTO):
     caps: Optional[int]
     career_end: Optional[date]
     career_start: Optional[date]
     dob: Optional[date]
-    full_name: Optional[str]
-    team_id: Optional[str]
     typical_position: Optional[str]
 
-    @classmethod
-    def get_required_fields(cls):
-        return ["full_name", "team_id"]
 
-    @classmethod
-    def get_uneditable_fields(cls):
-        return ["full_name"]
+class Player(EditablePlayer):
+    full_name: str
+    team_id: str
+
+
+class PlayerRecord(Player):
+    id_tag: str
 
 
 class PlayerResponseModel(ResponseModel):
-    result: Optional[Player.get_identified_record()]
+    result: Optional[PlayerRecord]
+
+
+class PlayerResponseModelList(ResponseModel):
+    result: List[PlayerRecord]

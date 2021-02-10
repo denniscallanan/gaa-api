@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from peewee import *
 
@@ -18,18 +18,25 @@ class ChampionshipTable(BaseDataModel):
         table_name = 'championship'
         primary_key = CompositeKey('id_tag', 'version_num')
 
+    def to_record(self):
+        return self.to_model(ChampionshipRecord)
 
-class Championship(DTO):
-    championship_name: Optional[str]
+
+class EditableChampionship(DTO):
     descript: Optional[str]
 
-    @classmethod
-    def get_required_fields(cls):
-        return ["championship_name"]
 
-    @classmethod
-    def get_uneditable_fields(cls):
-        return ["championship_name"]
+class Championship(EditableChampionship):
+    championship_name: str
+
+
+class ChampionshipRecord(Championship):
+    id_tag: str
+
 
 class ChampionshipResponseModel(ResponseModel):
-    result: Optional[Championship.get_identified_record()]
+    result: Optional[ChampionshipRecord]
+
+
+class ChampionshipResponseModelList(ResponseModel):
+    result: List[ChampionshipRecord]

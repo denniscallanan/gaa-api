@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from peewee import *
 
@@ -21,22 +21,27 @@ class TeamTable(BaseDataModel):
         table_name = 'team'
         primary_key = CompositeKey('id_tag', 'version_num')
 
+    def to_record(self):
+        return self.to_model(TeamRecord)
 
-class Team(DTO):
-    team_name: Optional[str]
+
+class EditableTeam(DTO):
     main_venue_id: Optional[str]
-    sport: Optional[str]
-    is_county: Optional[bool]
     est_year: Optional[int]
 
-    @classmethod
-    def get_required_fields(cls):
-        return ["team_name", 'is_county']
 
-    @classmethod
-    def get_uneditable_fields(cls):
-        return ["team_name", "sport"]
+class Team(EditableTeam):
+    team_name: str
+    sport: str
+    is_county: bool
 
+
+class TeamRecord(Team):
+    id_tag: str
+    
 
 class TeamResponseModel(ResponseModel):
-    result: Optional[Team.get_identified_record()]
+    result: Optional[TeamRecord]
+
+class TeamResponseModelList(ResponseModel):
+    result: List[TeamRecord]

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 from peewee import *
 
@@ -22,22 +22,28 @@ class RefereeTable(BaseDataModel):
         table_name = 'referee'
         primary_key = CompositeKey('id_tag', 'version_num')
 
+    def to_record(self):
+        return self.to_model(RefereeRecord)
 
-class Referee(DTO):
+
+class EditableReferee(DTO):
     career_end: Optional[date]
     career_start: Optional[date]
     county: Optional[str]
     dob: Optional[date]
-    full_name: Optional[str]
 
-    @classmethod
-    def get_required_fields(cls):
-        return ["full_name"]
 
-    @classmethod
-    def get_uneditable_fields(cls):
-        return ["full_name"]
+class Referee(EditableReferee):
+    full_name: str
+
+
+class RefereeRecord(EditableReferee):
+    id_tag: str
 
 
 class RefereeResponseModel(ResponseModel):
-    result: Optional[Referee.get_identified_record()]
+    result: Optional[RefereeRecord]
+
+
+class RefereeResponseModelList(ResponseModel):
+    result: List[RefereeRecord]

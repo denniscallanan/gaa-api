@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from peewee import *
 
@@ -19,20 +19,26 @@ class VenueTable(BaseDataModel):
         table_name = 'venue'
         primary_key = CompositeKey('id_tag', 'version_num')
 
+    def to_record(self):
+        return self.to_model(VenueRecord)
 
-class Venue(DTO):
+
+class EditableVenue(DTO):
     year_built: Optional[int]
-    venue_county: Optional[str]
-    venue_name: Optional[str]
 
-    @classmethod
-    def get_required_fields(cls):
-        return ["venue_name", 'venue_county']
 
-    @classmethod
-    def get_uneditable_fields(cls):
-        return ["venue_name", "venue_county"]
+class Venue(EditableVenue):
+    venue_county: str
+    venue_name: str
+
+
+class VenueRecord(Venue):
+    id_tag: str
 
 
 class VenueResponseModel(ResponseModel):
-    result: Optional[Venue.get_identified_record()]
+    result: Optional[VenueRecord]
+
+
+class VenueResponseModelList(ResponseModel):
+    result: List[VenueRecord]
